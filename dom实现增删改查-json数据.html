@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" type="text/css" href="css/index.css"/>
+</head>
+<body>
+	<table id="table1">
+		<tr>
+			<td colspan="8">
+				<h3>项目列表</h3>
+			</td>
+		</tr>
+		<tr>
+			<td>选择</td>
+			<td>编号</td>
+			<td>项目名称</td>
+			<td>项目承担部门</td>
+			<td>责任人</td>
+			<td>项目预算</td>
+			<td>开始日期</td>
+			<td>备注</td>
+		</tr>
+		
+		<tr>
+			<td colspan="8">
+				<span id="pageInfo"><!--共12条记录，每页7条，共2页，当前第1页--></span>
+				<a href="javaScript:" id="firstBtn">首页</a>
+				<a href="javaScript:" id="prevBtn">上页</a>
+				<a href="javaScript:" id="nextBtn">下页</a>
+				<a href="javaScript:" id="lastBtn">末页</a>
+			</td>
+		</tr>
+	</table>
+	<div><input type="button" id="btn" value="项目维护"></div>
+	<table id="table2">
+		<tr>
+			<td colspan="4">
+				<h3>项目信息维护</h3>
+			</td>
+		</tr>
+		<tr>
+			<td>项目名称</td>
+			<td><input type="text" id="name"></td>
+			<td>项目承担部门</td>
+			<td><input type="text" id="department"></td>
+		</tr>
+		<tr>
+			<td>责任人</td>
+			<td><input type="text" id="person"></td>
+			<td>项目预算</td>
+			<td><input type="text" id="budget"></td>
+		</tr>
+		<tr>
+			<td>开始日期</td>
+			<td><input type="text" id="date"></td>
+			<td>备注</td>
+			<td><input type="text" id="remark"></td>
+		</tr>
+		<tr>
+			<td colspan="4">
+				<input type="button" id="add" value="添加">
+				<input type="button" id="update" value="修改" disabled>
+				<input type="button" id="del" value="删除" disabled>
+				<input type="button" id="search" value="查询">
+				<input type="button" id="clear" value="清除">
+			</td>
+		</tr>
+	</table>
+	
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/data.js" ></script>
+	<script>
+		$(function() {
+			
+			var recordCount = 0;//总记录数
+			var pageSize = 7;//每页显示条数
+			var pageCount = 0;//总共几页
+			var pageNum = 1;//当前页码
+			
+			recordCount = data.length;//总记录数
+			//获取真实总共几页
+			pageCount = recordCount / pageSize;
+			
+			pageCount = parseInt(pageCount);
+			if(recordCount % pageSize != 0){
+				pageCount++;
+			}
+			/*
+			 * 显示当前页数据信息
+			 */
+			function showDate(){
+				$('#table1 tr:gt(1)').not(':last').remove();
+				
+				var start = (pageNum - 1) * pageSize + 1;//当前页起始条数
+				var end = pageNum * pageSize;//当前页结束条数
+				
+				var newArray = data.slice(start-1,end);//截取数组获得新数组
+				
+				$.each(newArray,function(index,el) {
+				
+				//创建一个tr
+				var tr = '';
+				tr += '<tr>';
+				tr += '	<td><input type="radio" name="check"></td>';
+				tr += '	<td>' + (index + 1) + '</td>';
+				tr += '	<td>' + el.name + '</td>';
+				tr += '	<td>' + el.department + '</td>';
+				tr += '	<td>' + el.person + '</td>';
+				tr += '	<td>' + el.budget + '</td>';
+				tr += '	<td>' + el.date + '</td>';
+				tr += '	<td>' + el.remark + '</td>';
+				tr += '</tr>';
+												
+				//增加到数据行中
+				$('#table1 tr:last').before(tr);
+				
+			});
+			
+					//动态显示按钮
+				if(pageNum != 1){
+					$('#firstBtn,#prevBtn').show();
+				}else{
+					$('#firstBtn,#prevBtn').hide();
+				}
+				
+				
+				if(pageNum != pageCount){
+					$('#lastBtn,#nextBtn').show();	
+				}else{
+					$('#lastBtn,#nextBtn').hide();
+				}
+			
+			$('#pageInfo').html('共' + recordCount + '条记录,每页'+ pageSize + '条，共'+ pageCount +'页，当前第'+ pageNum + '页');
+			
+			
+				}
+			//第一次加载必须调用一次
+			showDate();
+		
+			//首页按钮单击
+			$('#firstBtn').click(function(){
+				pageNum = 1;
+				showDate();
+			});
+			
+			//末尾页按钮单击
+			$('#lastBtn').click(function(){
+				pageNum = pageCount;
+				showDate();
+			});
+			
+			
+			//上一页按钮单击
+			$('#prevBtn').click(function(){
+				pageNum --;
+				if(pageNum < 1){
+					pageNum = 1;
+				}
+				showDate();
+			});
+			
+			//下一页按钮单击
+			$('#nextBtn').click(function(){
+				
+				pageNum ++;
+				if(pageNum > pageCount){
+					pageNum = pageCount;
+				}
+				showDate();
+			});
+			
+			
+			
+			
+			
+			var num = 0;//自动编号
+						
+			/*增加数据功能*/
+			$('#add').click(function() {
+				
+				//判断当前是否已经有数据行
+				if ( $('#table1 tr').length == 3 ) {
+					num = 1;
+				} else {
+					//获得一个递增的编号
+					num = parseInt( $('#table1 tr:last').prev().find('td').eq(1).text() ) + 1;
+				}				
+				
+				//获得表单的数据
+				var name = $('#name').val();
+				var department = $('#department').val();
+				var person = $('#person').val();
+				var budget = $('#budget').val();
+				var date = $('#date').val();
+				var remark = $('#remark').val();
+								
+				//创建一个tr
+				var tr = '';
+				tr += '<tr>';
+				tr += '	<td><input type="radio" name="check"></td>';
+				tr += '	<td>' + num + '</td>';
+				tr += '	<td>' + name + '</td>';
+				tr += '	<td>' + department + '</td>';
+				tr += '	<td>' + person + '</td>';
+				tr += '	<td>' + budget + '</td>';
+				tr += '	<td>' + date + '</td>';
+				tr += '	<td>' + remark + '</td>';
+				tr += '</tr>';
+												
+				//增加到数据行中
+				$('#table1 tr:last').before(tr);
+				
+				reset();//重置								
+			});			
+			
+			/*利用事件委托处理单选按钮选中行高亮*/
+			$('#table1').on('click','input[name=check]',function() {
+				//高亮当前行
+				activeTr();
+				
+				//获得单元格内容设置到表单中
+				$('#name').val( $(this).parents('tr').find('td').eq(2).text() );
+				$('#department').val( $(this).parents('tr').find('td').eq(3).text() );
+				$('#person').val( $(this).parents('tr').find('td').eq(4).text() );
+				$('#budget').val( $(this).parents('tr').find('td').eq(5).text() );
+				$('#date').val( $(this).parents('tr').find('td').eq(6).text() );
+				$('#remark').val( $(this).parents('tr').find('td').eq(7).text() );
+				
+				//修改和删除按钮变为可用
+				$('#update,#del').prop('disabled',false);
+				
+			});
+			
+			/*删除数据*/
+			$('#del').click(function() {
+				
+				var flag = window.confirm('你确定要删除这行数据吗？');
+				
+				if (!flag)
+					return;
+				
+				//删除选中
+				$('.active').remove();
+				
+			});
+			
+			/*修改数据*/
+			$('#update').click(function() {
+				
+				$('.active').children('td').eq(2).text( $('#name').val() );
+				$('.active').children('td').eq(3).text( $('#department').val() );
+				$('.active').children('td').eq(4).text( $('#person').val() );
+				$('.active').children('td').eq(5).text( '￥' + $('#budget').val() );
+				$('.active').children('td').eq(6).text( $('#date').val() );
+				$('.active').children('td').eq(7).text( $('#remark').val() );
+				
+				reset();//重置
+			});
+			
+			/*清除按钮*/
+			$('#clear').click(function() {
+				
+				reset();
+				
+			});
+			
+			/*
+			 * 高亮行函数
+			 */
+			function activeTr() {
+				//取消原来的行高亮
+				$('.active').removeClass('active');		
+				//当前选中的行高亮
+				$('#table1 :radio:checked').parents('tr').addClass('active');
+			}
+			
+			/*
+			 * 重置函数
+			 */
+			function reset() {
+				//单选全部取消选中
+				$('#table1 :radio:checked').prop('checked',false);
+				//取消原来的行高亮
+				$('.active').removeClass('active');
+				//清空文本框
+				$('#table2 :text').val('');
+				
+			}
+			
+		});		
+	</script>
+</body>
+</html>
